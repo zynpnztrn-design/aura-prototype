@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aura — Prototip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#6C5CE7;
+    --primary-variant:#5849C2;
+    --bg:#FAF9F7;
+    --surface:#FFFFFF;
+    --surface-variant:#F0EEEB;
+    --text:#1C1B1F;
+    --text-secondary:#6F6C75;
+    --border:#E5E2DD;
+    --gold:#D4A94F;
+    --success:#4CAF77;
+    --error:#E0555F;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Inter', sans-serif;
+    background: #E9E6E0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    padding:24px;
+    color:var(--text);
+  }
+  .device{
+    --bg:#FAF9F7;
+    width:390px;
+    height:844px;
+    background: var(--bg);
+    background-image: var(--wallpaper, none);
+    background-size: cover;
+    border-radius:44px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.25);
+    overflow:hidden;
+    position:relative;
+    border: 8px solid #17161A;
+    transition: background-color .4s ease;
+  }
+  .screen{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    opacity:0;
+    transform: translateX(24px);
+    pointer-events:none;
+    transition: opacity .28s ease, transform .28s ease;
+  }
+  .screen.active{
+    opacity:1;
+    transform: translateX(0);
+    pointer-events:auto;
+  }
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:52px 20px 12px;
+  }
+  .back-btn{
+    width:36px;height:36px;border-radius:12px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    font-size:16px;
+  }
+  .back-btn.invisible{ visibility:hidden; }
+  .wallet{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:8px 14px;
+    font-weight:600;
+    font-size:14px;
+  }
+  .wallet .coin{
+    width:16px;height:16px;border-radius:50%;
+    background: radial-gradient(circle at 30% 30%, #F3D98B, var(--gold));
+    display:inline-block;
+  }
+  .content{
+    flex:1;
+    padding: 8px 24px 32px;
+    display:flex;
+    flex-direction:column;
+    overflow-y:auto;
+  }
+
+  /* ---------- HOME ---------- */
+  .home-content{
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    gap:10px;
+  }
+  .ribbon-tag{
+    font-family:'Fraunces', serif;
+    font-size:13px;
+    color:var(--gold);
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .home-title{
+    font-family:'Fraunces', serif;
+    font-size:32px;
+    font-weight:600;
+    line-height:1.2;
+    margin-bottom:8px;
+  }
+  .home-subtitle{
+    color:var(--text-secondary);
+    font-size:15px;
+    margin-bottom:32px;
+  }
+  .home-cookie-preview{ width:120px; height:120px; margin-bottom:32px; }
+  .btn{
+    width:100%;
+    border:none;
+    border-radius:18px;
+    padding:17px;
+    font-family:'Inter';
+    font-weight:600;
+    font-size:15.5px;
+    cursor:pointer;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active{ transform: scale(0.97); }
+  .btn-primary{
+    background:var(--primary);
+    color:white;
+    box-shadow: 0 10px 24px rgba(108,92,231,0.28);
+    margin-bottom:12px;
+  }
+  .btn-secondary{
+    background:var(--surface);
+    color:var(--text);
+    border:1.5px solid var(--border);
+  }
+  .home-actions{ width:100%; }
+
+  .theme-picker{ width:100%; margin-top:28px; }
+  .theme-picker-label{
+    font-size:12px;
+    color:var(--text-secondary);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    font-weight:600;
+    margin-bottom:10px;
+    text-align:left;
+  }
+  .theme-row{ display:flex; gap:10px; }
+  .theme-swatch{
+    width:38px; height:38px;
+    border-radius:50%;
+    cursor:pointer;
+    border: 2px solid transparent;
+    transition: transform .15s ease, border-color .15s ease;
+    flex-shrink:0;
+  }
+  .theme-swatch:active{ transform: scale(0.92); }
+  .theme-swatch.active{ border-color: var(--primary); }
+  .theme-swatch.wallpaper{ position:relative; }
+
+  /* ---------- COOKIE SCREEN ---------- */
+  .cookie-content{
+    align-items:center;
+    justify-content:flex-start;
+    padding-top:20px;
+    text-align:center;
+  }
+  .cookie-hint{
+    font-size:15px;
+    color:var(--text-secondary);
+    margin-bottom:8px;
+    min-height:20px;
+  }
+  .cookie-stage{
+    position:relative;
+    width:300px;
+    height:360px;
+    margin-top: 24px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .cookie-wrap{
+    position:relative;
+    width:210px;
+    height:210px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .cookie-half{
+    position:absolute;
+    top:0; width:100%; height:100%;
+    transition: transform .55s cubic-bezier(.22,.61,.36,1);
+  }
+  .cookie-svg{ width:100%; height:100%; display:block; filter: drop-shadow(0 16px 20px rgba(150,105,45,0.38)); }
+  .cookie-left{ clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%); }
+  .cookie-right{ clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%); }
+  .cracked .cookie-left{ transform: translateX(-52px) translateY(6px) rotate(-16deg); }
+  .cracked .cookie-right{ transform: translateX(52px) translateY(6px) rotate(16deg); }
+
+  .crack-svg{
+    position:absolute; inset:0;
+    pointer-events:none;
+  }
+  .crack-path{
+    fill:none;
+    stroke:#6E4A22;
+    stroke-width:2.4;
+    stroke-linecap:round;
+    stroke-dasharray: 140;
+    stroke-dashoffset: 140;
+    opacity:0;
+    transition: stroke-dashoffset .25s ease, opacity .15s ease;
+  }
+
+  .ribbon-wrap{
+    position:absolute;
+    top:50%; left:50%;
+    width:230px; height:26px;
+    transform: translate(-50%,-50%);
+    z-index:3;
+    transition: opacity .35s ease .05s;
+  }
+  .ribbon-wrap.gone{ opacity:0; }
+  .ribbon-band{
+    position:absolute;
+    inset:0;
+    background: linear-gradient(180deg, #EFC1CC 0%, #DB93A6 55%, #C97D93 100%);
+    border-radius: 4px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    transform-origin: 50% 50%;
+    transition: transform .5s cubic-bezier(.36,.07,.19,.97);
+  }
+  .ribbon-wrap.untied .ribbon-band-left{
+    transform: translateX(-140px) rotate(-50deg) scaleX(0.6);
+  }
+  .ribbon-wrap.untied .ribbon-band-right{
+    transform: translateX(140px) rotate(50deg) scaleX(0.6);
+  }
+  .ribbon-band-left{ clip-path: polygon(0 0, 48% 0, 48% 100%, 0 100%); }
+  .ribbon-band-right{ clip-path: polygon(52% 0, 100% 0, 100% 100%, 52% 100%); }
+  .ribbon-knot{
+    position:absolute;
+    left:50%; top:50%;
+    width:22px; height:22px;
+    transform: translate(-50%,-50%);
+    background: radial-gradient(circle at 35% 35%, #F0C9D2, #C97D93);
+    border-radius:6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.18);
+    transition: opacity .3s ease, transform .3s ease;
+  }
+  .ribbon-wrap.untied .ribbon-knot{ opacity:0; transform: translate(-50%,-50%) scale(0.4); }
+
+  .paper-slot{
+    position:absolute; top:50%; left:50%;
+    transform: translate(-50%,-50%);
+    width:0; height:0;
+    z-index:4;
+  }
+  .paper{
+    position:absolute;
+    top:50%; left:50%;
+    width:150px; height:56px;
+    transform: translate(-50%,-50%) scaleX(0.34);
+    opacity:0;
+    cursor:pointer;
+    transition: opacity .3s ease;
+  }
+  .paper.show{ opacity:1; }
+  .paper-body{
+    position:relative;
+    width:100%; height:100%;
+    background:
+      repeating-linear-gradient(180deg, rgba(0,0,0,0.015) 0px, rgba(0,0,0,0.015) 1px, transparent 1px, transparent 3px),
+      linear-gradient(180deg, #FFFDF7, #FBF4E3);
+    border-radius:5px;
+    box-shadow: 0 8px 18px rgba(60,40,10,0.16), inset 0 0 0 1px #EFE3C4;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    transition: width .55s cubic-bezier(.22,.61,.36,1), height .55s cubic-bezier(.22,.61,.36,1), border-radius .5s ease;
+  }
+  .paper.opened{ transform: translate(-50%,-50%) scaleX(1); }
+  .paper.opened .paper-body{ width:100%; height:100%; }
+  .curl{
+    position:absolute; top:0; bottom:0; width:22px;
+    background: linear-gradient(90deg, rgba(150,120,60,0.28), rgba(150,120,60,0));
+    transition: opacity .5s ease .05s, width .5s ease;
+    z-index:2;
+  }
+  .curl-l{ left:0; }
+  .curl-r{ right:0; transform: scaleX(-1); }
+  .paper.opened .curl{ opacity:0; width:0; }
+  .message-card{
+    position:relative;
+    opacity:0;
+    max-width: 210px;
+    text-align:center;
+    font-family:'Fraunces', serif;
+    font-size:15.5px;
+    line-height:1.5;
+    color:#3B2F1F;
+    padding: 6px 14px;
+    transform: translateY(4px);
+    transition: opacity .4s ease, transform .4s ease;
+  }
+  .message-card.show{ opacity:1; transform:translateY(0); }
+  .cookie-footer{ margin-top:auto; width:100%; padding-top:16px; }
+
+  /* ---------- CATEGORY ---------- */
+  .section-title{
+    font-family:'Fraunces', serif;
+    font-size:24px;
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .section-subtitle{
+    color:var(--text-secondary);
+    font-size:14px;
+    margin-bottom:22px;
+  }
+  .cat-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:12px;
+  }
+  .cat-card{
+    background:var(--surface);
+    border:1.5px solid var(--border);
+    border-radius:18px;
+    padding:18px 14px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+    transition: transform .15s ease;
+    text-align:center;
+  }
+  .cat-card:active{ transform: scale(0.96); }
+  .cat-card .emoji{ font-size:26px; }
+  .cat-card .label{ font-weight:600; font-size:14.5px; }
+  .cat-card .desc{ font-size:11.5px; color:var(--text-secondary); line-height:1.35; }
+
+  /* ---------- QUESTION LIST ---------- */
+  .q-list{ display:flex; flex-direction:column; gap:10px; }
+  .q-item{
+    background:var(--surface);
+    border:1.5px solid var(--border);
+    border-radius:16px;
+    padding:16px 16px;
+    font-size:14.5px;
+    font-weight:500;
+    cursor:pointer;
+    transition: transform .12s ease;
+  }
+  .q-item:active{ transform: scale(0.98); }
+
+  /* ---------- ANSWER ---------- */
+  .answer-cat-tag{
+    font-size:12.5px;
+    color:var(--primary);
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    margin-bottom:6px;
+  }
+  .answer-question{
+    font-family:'Fraunces', serif;
+    font-size:20px;
+    font-weight:600;
+    margin-bottom:20px;
+    line-height:1.3;
+  }
+  .answer-block{ margin-bottom:18px; }
+  .answer-block .block-label{
+    font-size:11.5px;
+    color:var(--text-secondary);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    margin-bottom:6px;
+    font-weight:600;
+  }
+  .answer-block p{ font-size:15px; line-height:1.6; color:var(--text); }
+  .locked-wrap{ position:relative; border-radius:16px; overflow:hidden; }
+  .locked-content{ filter: blur(5px); user-select:none; padding:2px; }
+  .locked-cta{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+    background: rgba(250,249,247,0.55);
+    cursor:pointer;
+  }
+  .locked-cta .lock-icon{
+    width:34px;height:34px;border-radius:50%;
+    background:var(--surface); border:1.5px solid var(--border);
+    display:flex;align-items:center;justify-content:center; font-size:15px;
+  }
+  .locked-cta .cta-text{
+    font-size:13.5px; font-weight:600; color:var(--text);
+    background:var(--surface); padding:8px 16px; border-radius:20px; border:1.5px solid var(--border);
+  }
+  .continue-note{ text-align:center; font-size:13px; color:var(--text-secondary); margin: 6px 0 20px; }
+
+  /* ---------- MODAL ---------- */
+  .modal-overlay{
+    position:absolute; inset:0;
+    background:rgba(28,27,31,0.45);
+    opacity:0; pointer-events:none;
+    transition:opacity .25s ease;
+    display:flex; align-items:flex-end;
+    z-index:50;
+  }
+  .modal-overlay.show{ opacity:1; pointer-events:auto; }
+  .modal-sheet{
+    width:100%; background:var(--bg);
+    border-radius:28px 28px 0 0;
+    padding:14px 24px 32px;
+    transform: translateY(100%);
+    transition: transform .32s cubic-bezier(.22,.61,.36,1);
+  }
+  .modal-overlay.show .modal-sheet{ transform: translateY(0); }
+  .modal-handle{ width:40px; height:4px; border-radius:2px; background:var(--border); margin: 6px auto 18px; }
+  .modal-title{ font-family:'Fraunces', serif; font-size:19px; font-weight:600; text-align:center; margin-bottom:20px; }
+  .unlock-options{ display:flex; flex-direction:column; gap:12px; }
+  .unlock-option{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--surface); border:1.5px solid var(--border); border-radius:16px;
+    padding:16px 16px; cursor:pointer; transition: transform .12s ease;
+  }
+  .unlock-option:active{ transform: scale(0.98); }
+  .unlock-option .opt-left{ display:flex; align-items:center; gap:12px; }
+  .unlock-option .opt-icon{
+    width:38px;height:38px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center; font-size:17px;
+    background:var(--surface-variant);
+  }
+  .unlock-option .opt-title{ font-weight:600; font-size:14.5px; }
+  .unlock-option .opt-sub{ font-size:12.5px; color:var(--text-secondary); margin-top:2px;}
+  .unlock-option .opt-price{ font-weight:600; font-size:13.5px; color:var(--primary); }
+  .modal-close-link{ display:block; text-align:center; margin-top:16px; font-size:13.5px; color:var(--text-secondary); cursor:pointer; text-decoration:underline; }
+
+  .toast{
+    position:absolute; left:50%; bottom:28px;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text); color:white;
+    padding:12px 20px; border-radius:24px; font-size:13.5px; font-weight:500;
+    opacity:0; transition: opacity .25s ease, transform .25s ease;
+    z-index:100; white-space:nowrap;
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="device" id="device">
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="topbar">
+      <div class="back-btn invisible">←</div>
+      <div class="wallet"><span class="coin"></span><span id="wallet-home">20</span></div>
+    </div>
+    <div class="content home-content">
+      <div class="ribbon-tag">Aura</div>
+      <div class="home-title">Bugün ne var?</div>
+      <div class="home-subtitle">İki dakikanı ayır, bakalım.</div>
+
+      <div class="home-cookie-preview">
+        <svg viewBox="0 0 210 210" class="cookie-svg" id="home-cookie-svg"></svg>
+      </div>
+
+      <div class="home-actions">
+        <button class="btn btn-primary" onclick="goTo('cookie'); resetCookie();">Kurabiyeni Aç</button>
+        <button class="btn btn-secondary" onclick="goTo('category')">Bir Konu Seç</button>
+      </div>
+
+      <div class="theme-picker">
+        <div class="theme-picker-label">Görünüm</div>
+        <div class="theme-row" id="theme-row"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COOKIE -->
+  <div class="screen" id="screen-cookie">
+    <div class="topbar">
+      <div class="back-btn" onclick="goTo('home')">←</div>
+      <div class="wallet"><span class="coin"></span><span id="wallet-cookie">20</span></div>
+    </div>
+    <div class="content cookie-content">
+      <div class="cookie-hint" id="cookie-hint">Dokun ve kır.</div>
+      <div class="cookie-stage">
+
+        <div class="ribbon-wrap" id="ribbon-wrap">
+          <div class="ribbon-band ribbon-band-left"></div>
+          <div class="ribbon-band ribbon-band-right"></div>
+          <div class="ribbon-knot"></div>
+        </div>
+
+        <div class="cookie-wrap" id="cookie-wrap" onclick="tapCookie()">
+          <div class="cookie-half cookie-left">
+            <svg viewBox="0 0 210 210" class="cookie-svg" id="cookie-left-svg"></svg>
+          </div>
+          <div class="cookie-half cookie-right">
+            <svg viewBox="0 0 210 210" class="cookie-svg" id="cookie-right-svg"></svg>
+          </div>
+          <svg class="crack-svg" viewBox="0 0 210 210">
+            <path class="crack-path" id="crack-path" d="M105,40 L98,75 L112,100 L96,130 L105,170"/>
+          </svg>
+        </div>
+
+        <div class="paper-slot">
+          <div class="paper" id="paper" onclick="event.stopPropagation(); openPaper();">
+            <div class="paper-body">
+              <div class="curl curl-l"></div>
+              <div class="curl curl-r"></div>
+              <div class="message-card" id="message-card">Beklediğin haber düşündüğünden daha yakın. Sabırsızlanma, zaten yolda.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="cookie-footer">
+        <button class="btn btn-primary" id="cookie-continue" style="display:none;" onclick="goTo('category')">Devam Et</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORY -->
+  <div class="screen" id="screen-category">
+    <div class="topbar">
+      <div class="back-btn" onclick="goTo('home')">←</div>
+      <div class="wallet"><span class="coin"></span><span id="wallet-category">20</span></div>
+    </div>
+    <div class="content">
+      <div class="section-title">Bugün hangi konu aklını meşgul ediyor?</div>
+      <div class="section-subtitle">Birini seç, sana özel sorular gelsin.</div>
+      <div class="cat-grid" id="cat-grid"></div>
+    </div>
+  </div>
+
+  <!-- QUESTIONS -->
+  <div class="screen" id="screen-questions">
+    <div class="topbar">
+      <div class="back-btn" onclick="goTo('category')">←</div>
+      <div class="wallet"><span class="coin"></span><span id="wallet-questions">20</span></div>
+    </div>
+    <div class="content">
+      <div class="section-title" id="q-cat-title">Aşk</div>
+      <div class="section-subtitle">Seni en çok hangisi meraklandırıyor?</div>
+      <div class="q-list" id="q-list"></div>
+    </div>
+  </div>
+
+  <!-- ANSWER -->
+  <div class="screen" id="screen-answer">
+    <div class="topbar">
+      <div class="back-btn" onclick="goTo('questions')">←</div>
+      <div class="wallet"><span class="coin"></span><span id="wallet-answer">20</span></div>
+    </div>
+    <div class="content">
+      <div class="answer-cat-tag" id="answer-cat-tag">AŞK</div>
+      <div class="answer-question" id="answer-question">Beklediğin haber yakında geliyor mu?</div>
+
+      <div class="answer-block">
+        <div class="block-label">Giriş</div>
+        <p>Bir şeyin eşiğinde olduğunu hissediyorsun, değil mi? Bu his boşuna değil.</p>
+      </div>
+      <div class="answer-block">
+        <div class="block-label">Ana Yorum</div>
+        <p>Beklediğin haber gerçekten yolda ama senin sandığın hızda değil. Önümüzdeki günlerde küçük bir işaret göreceksin, onu kaçırma. Sabırsızlığın anlaşılır ama bu süreç kendi zamanında ilerliyor.</p>
+      </div>
+
+      <div class="continue-note">Devamında seni bekleyen bir şey daha var.</div>
+
+      <div class="locked-wrap">
+        <div class="locked-content">
+          <div class="answer-block">
+            <div class="block-label">Ek Yorum</div>
+            <p>Bu bekleyiş sırasında çevrendeki birinin sana beklenmedik bir şekilde yardımcı olacağını göreceksin.</p>
+          </div>
+          <div class="answer-block" style="margin-bottom:4px;">
+            <div class="block-label">Küçük Not</div>
+            <p>Bu hafta telefonunu elinden bırakma, önemli olan an hiç beklemediğin bir zamanda gelebilir.</p>
+          </div>
+        </div>
+        <div class="locked-cta" onclick="openUnlockModal()">
+          <div class="lock-icon">🔒</div>
+          <div class="cta-text">Devamını Gör</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UNLOCK MODAL -->
+  <div class="modal-overlay" id="unlock-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Devamını görmek için:</div>
+      <div class="unlock-options">
+        <div class="unlock-option" onclick="unlockWithAd()">
+          <div class="opt-left">
+            <div class="opt-icon">▶</div>
+            <div>
+              <div class="opt-title">Reklam İzle</div>
+              <div class="opt-sub">~15 saniye</div>
+            </div>
+          </div>
+          <div class="opt-price">Ücretsiz</div>
+        </div>
+        <div class="unlock-option" onclick="unlockWithToken()">
+          <div class="opt-left">
+            <div class="opt-icon">🪙</div>
+            <div>
+              <div class="opt-title">Jeton Kullan</div>
+              <div class="opt-sub" id="modal-balance-sub">Bakiyen: 20</div>
+            </div>
+          </div>
+          <div class="opt-price">5 Jeton</div>
+        </div>
+      </div>
+      <div class="modal-close-link" onclick="closeUnlockModal()">Şimdi değil</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+</div>
+
+<script>
+  // ---------- realistic cookie SVG (shared markup, injected into 3 svg targets) ----------
+  const cookieInner = `
+    <defs>
+      <radialGradient id="cookieGrad" cx="38%" cy="30%" r="75%">
+        <stop offset="0%" stop-color="#F3CE86"/>
+        <stop offset="45%" stop-color="#E6AE5D"/>
+        <stop offset="80%" stop-color="#C6883C"/>
+        <stop offset="100%" stop-color="#A96E2E"/>
+      </radialGradient>
+      <linearGradient id="cookieEdge" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#8A5A22"/>
+        <stop offset="100%" stop-color="#6E4519"/>
+      </linearGradient>
+      <filter id="grain">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="noise"/>
+        <feColorMatrix in="noise" type="matrix"
+          values="0 0 0 0 0.35
+                  0 0 0 0 0.24
+                  0 0 0 0 0.1
+                  0 0 0 0.05 0"/>
+      </filter>
+    </defs>
+    <path d="M28,95 C28,50 62,18 105,18 C148,18 182,50 182,95 C182,102 172,102 168,98
+             C158,88 108,88 105,100 C102,88 52,88 42,98 C38,102 28,102 28,95 Z"
+          fill="url(#cookieEdge)" transform="translate(0,4)"/>
+    <path d="M25,92 C25,47 60,15 105,15 C150,15 185,47 185,92 C185,100 174,100 169,95
+             C158,84 108,85 105,98 C102,85 52,84 41,95 C36,100 25,100 25,92 Z"
+          fill="url(#cookieGrad)"/>
+    <path d="M25,92 C25,47 60,15 105,15 C150,15 185,47 185,92 C185,100 174,100 169,95
+             C158,84 108,85 105,98 C102,85 52,84 41,95 C36,100 25,100 25,92 Z"
+          fill="url(#cookieGrad)" filter="url(#grain)" opacity="0.55"/>
+    <path d="M105,15 C102,40 100,70 105,98 C110,70 108,40 105,15 Z"
+          fill="#8A5A22" opacity="0.4"/>
+    <ellipse cx="70" cy="45" rx="26" ry="14" fill="#FBE3AE" opacity="0.35"/>
+  `;
+  document.getElementById('home-cookie-svg').innerHTML = cookieInner;
+  document.getElementById('cookie-left-svg').innerHTML = cookieInner;
+  document.getElementById('cookie-right-svg').innerHTML = cookieInner;
+
+  // ---------- state ----------
+  let wallet = 20;
+  let tapCount = 0;
+  const TAP_TARGET = 4;
+  let cracked = false;
+  let paperOpened = false;
+
+  const categories = [
+    {id:'ask', emoji:'💗', label:'Aşk', desc:'Kalbinin şu an nerede olduğunu birlikte görelim.'},
+    {id:'para', emoji:'💰', label:'Para', desc:'Cebindeki huzur bugün ne söylüyor, bakalım.'},
+    {id:'kariyer', emoji:'🚀', label:'Kariyer', desc:'Attığın adımların nereye çıktığına bir göz atalım.'},
+    {id:'kendim', emoji:'🌿', label:'Kendim', desc:'Bugün biraz da kendine kulak ver.'},
+    {id:'ailem', emoji:'🏠', label:'Ailem', desc:'Evdekilerle aranda neler oluyor, bir bakalım.'},
+    {id:'arkadaslik', emoji:'🤝', label:'Arkadaşlık', desc:'Yanındakilerle bağın bugün nasıl hissettiriyor?'},
+  ];
+
+  const questionsByCategory = {
+    ask: ['Beklediğin haber yakında geliyor mu?','Kalbindeki kişi seni düşünüyor mu?','Bu ilişki doğru yönde mi ilerliyor?','Yeni biri hayatına girecek mi?','Geçmişten biri geri dönecek mi?','Bu duygular karşılıklı mı?'],
+    para: ['Yakın zamanda bir fırsat kapıma mı geliyor?','Bu ay maddi olarak rahatlayacak mıyım?','Doğru yatırımı mı yapıyorum?','Beklenmedik bir gelir geliyor mu?','Harcama alışkanlığımı değiştirmeli miyim?','Bu risk buna değer mi?'],
+    kariyer: ['Yeni bir fırsat kapıda mı?','Şu anki yolum doğru mu?','Terfi yakın mı?','Bu iş değişikliği doğru karar mı?','Emeğim yakında karşılığını bulacak mı?','Yeni bir başlangıç zamanı mı?'],
+    kendim: ['Kendime karşı dürüst müyüm?','Bu dönem neden bu kadar yorucu?','İçimdeki huzursuzluk neyle ilgili?','Değişim zamanı mı geldi?','Kendime daha çok zaman ayırmalı mıyım?','Bu his geçici mi?'],
+    ailem: ['Ailemle aramdaki mesafe kapanacak mı?','Onlara söylemem gereken bir şey var mı?','Bu yakında konuşma zamanı mı?','Eve dönüş zamanı mı?','Onlar beni gerçekten anlıyor mu?','Bu gerginlik ne zaman bitecek?'],
+    arkadaslik: ['Bu arkadaşlık büyümeye devam edecek mi?','Biri benden uzaklaşıyor mu?','Yeni bir dostluk kapıda mı?','Güvenim yerinde mi?','Bu sessizlik neyin işareti?','Eski bir dost geri dönecek mi?'],
+  };
+
+  // ---------- theme picker ----------
+  const themes = [
+    {id:'cream', type:'color', value:'#FAF9F7'},
+    {id:'blush', type:'color', value:'#F7EDEE'},
+    {id:'sage', type:'color', value:'#EEF2EA'},
+    {id:'dusk', type:'color', value:'#EDEBF5'},
+    {id:'linen', type:'wallpaper', bg:'#F6F1E7', pattern:'repeating-linear-gradient(135deg, rgba(180,150,100,0.06) 0px, rgba(180,150,100,0.06) 2px, transparent 2px, transparent 14px)'},
+    {id:'dots', type:'wallpaper', bg:'#F3F1F6', pattern:'radial-gradient(rgba(108,92,231,0.10) 1.5px, transparent 1.5px)'},
+  ];
+  function renderThemes(){
+    const row = document.getElementById('theme-row');
+    row.innerHTML = '';
+    themes.forEach((t,i)=>{
+      const sw = document.createElement('div');
+      sw.className = 'theme-swatch' + (i===0 ? ' active' : '') + (t.type==='wallpaper' ? ' wallpaper' : '');
+      const bgColor = t.type==='color' ? t.value : t.bg;
+      sw.style.background = t.type==='wallpaper'
+        ? `${t.pattern}, ${bgColor}`
+        : bgColor;
+      sw.style.backgroundSize = t.type==='wallpaper' ? '14px 14px' : 'auto';
+      sw.onclick = ()=> applyTheme(t, sw);
+      row.appendChild(sw);
+    });
+  }
+  function applyTheme(t, el){
+    document.querySelectorAll('.theme-swatch').forEach(s=>s.classList.remove('active'));
+    el.classList.add('active');
+    const device = document.getElementById('device');
+    if(t.type==='color'){
+      device.style.setProperty('--bg', t.value);
+      device.style.backgroundImage = 'none';
+    } else {
+      device.style.setProperty('--bg', t.bg);
+      device.style.backgroundImage = t.pattern;
+      device.style.backgroundSize = '16px 16px';
+    }
+  }
+
+  let currentCategory = 'ask';
+
+  function goTo(name){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('screen-'+name).classList.add('active');
+  }
+
+  function updateWalletDisplays(){
+    ['home','cookie','category','questions','answer'].forEach(id=>{
+      const el = document.getElementById('wallet-'+id);
+      if(el) el.textContent = wallet;
+    });
+    const modalSub = document.getElementById('modal-balance-sub');
+    if(modalSub) modalSub.textContent = 'Bakiyen: ' + wallet;
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=> t.classList.remove('show'), 1800);
+  }
+
+  // ---------- cookie interaction ----------
+  function resetCookie(){
+    tapCount = 0;
+    cracked = false;
+    paperOpened = false;
+    document.getElementById('cookie-wrap').classList.remove('cracked');
+    const ribbon = document.getElementById('ribbon-wrap');
+    ribbon.classList.remove('untied','gone');
+    const crack = document.getElementById('crack-path');
+    crack.style.opacity = 0;
+    crack.style.strokeDashoffset = 140;
+    const paper = document.getElementById('paper');
+    paper.classList.remove('show','opened');
+    document.getElementById('message-card').classList.remove('show');
+    document.getElementById('cookie-hint').textContent = 'Dokun ve kır.';
+    document.getElementById('cookie-continue').style.display = 'none';
+  }
+
+  function tapCookie(){
+    if(cracked) return;
+    tapCount++;
+    const wrap = document.getElementById('cookie-wrap');
+    const ribbon = document.getElementById('ribbon-wrap');
+    const crack = document.getElementById('crack-path');
+
+    // tap 1: ribbon starts untying immediately, clears scene fully
+    if(tapCount === 1){
+      ribbon.classList.add('untied');
+      setTimeout(()=> ribbon.classList.add('gone'), 480);
+      document.getElementById('cookie-hint').textContent = 'Devam et...';
+    }
+
+    // subtle shake feedback (max ~1.5deg, premium restraint)
+    wrap.style.transition = 'transform .09s ease';
+    wrap.style.transform = 'rotate(1.2deg)';
+    setTimeout(()=>{ wrap.style.transform = 'rotate(-1.2deg)'; }, 90);
+    setTimeout(()=>{ wrap.style.transform = 'rotate(0deg)'; }, 180);
+
+    // crack grows progressively from tap 2 onward, after ribbon has cleared
+    if(tapCount >= 2){
+      crack.style.opacity = 1;
+      const progress = (tapCount-1) / (TAP_TARGET-1); // 0.33, 0.66, 1
+      crack.style.strokeDashoffset = 140 - (140*progress);
+    }
+    if(tapCount >= 2 && tapCount < TAP_TARGET){
+      document.getElementById('cookie-hint').textContent = 'Çatlıyor...';
+    }
+
+    if(tapCount >= TAP_TARGET){
+      cracked = true;
+      setTimeout(()=>{
+        wrap.classList.add('cracked');
+        crack.style.opacity = 0;
+        document.getElementById('cookie-hint').textContent = 'Kağıt içeride.';
+      }, 120);
+      setTimeout(()=>{
+        document.getElementById('paper').classList.add('show');
+      }, 600);
+    }
+  }
+
+  function openPaper(){
+    if(!cracked || paperOpened) return;
+    paperOpened = true;
+    const paper = document.getElementById('paper');
+    document.getElementById('cookie-hint').textContent = '';
+    paper.classList.add('opened');
+    setTimeout(()=>{
+      document.getElementById('message-card').classList.add('show');
+      document.getElementById('cookie-continue').style.display = 'block';
+    }, 420);
+  }
+
+  // ---------- category / question rendering ----------
+  function renderCategories(){
+    const grid = document.getElementById('cat-grid');
+    grid.innerHTML = '';
+    categories.forEach(cat=>{
+      const div = document.createElement('div');
+      div.className = 'cat-card';
+      div.onclick = ()=> openCategory(cat.id, cat.label);
+      div.innerHTML = `<div class="emoji">${cat.emoji}</div><div class="label">${cat.label}</div><div class="desc">${cat.desc}</div>`;
+      grid.appendChild(div);
+    });
+  }
+
+  function openCategory(id, label){
+    currentCategory = id;
+    document.getElementById('q-cat-title').textContent = label;
+    const list = document.getElementById('q-list');
+    list.innerHTML = '';
+    questionsByCategory[id].forEach(q=>{
+      const div = document.createElement('div');
+      div.className = 'q-item';
+      div.textContent = q;
+      div.onclick = ()=> openAnswer(label, q);
+      list.appendChild(div);
+    });
+    goTo('questions');
+  }
+
+  function openAnswer(catLabel, question){
+    document.getElementById('answer-cat-tag').textContent = catLabel.toUpperCase();
+    document.getElementById('answer-question').textContent = question;
+    document.querySelector('.locked-wrap').style.display = 'block';
+    goTo('answer');
+  }
+
+  function openUnlockModal(){ document.getElementById('unlock-modal').classList.add('show'); }
+  function closeUnlockModal(){ document.getElementById('unlock-modal').classList.remove('show'); }
+  function unlockWithAd(){
+    closeUnlockModal();
+    showToast('Reklam izleniyor (dummy)...');
+    setTimeout(()=>{
+      document.querySelector('.locked-wrap').style.display = 'none';
+      showToast('Açıldı ✦');
+    }, 900);
+  }
+  function unlockWithToken(){
+    if(wallet < 5){ showToast('Yetersiz jeton'); return; }
+    wallet -= 5;
+    updateWalletDisplays();
+    closeUnlockModal();
+    document.querySelector('.locked-wrap').style.display = 'none';
+    showToast('5 jeton kullanıldı ✦');
+  }
+
+  // ---------- init ----------
+  renderCategories();
+  renderThemes();
+  updateWalletDisplays();
+</script>
+
+</body>
+</html>
